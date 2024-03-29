@@ -21,5 +21,5 @@ public class Tool {
 	private String toolCode;
 	private String toolType;
 	private String brand;
-	private boolean freeOnWeekends;
+	private boolean freeOnWeekendsOrHolidays;
 }
