@@ -88,14 +88,10 @@ public class RentalRuleProcessor {
 
 	private void setDueDate(RentalAgrement rentalAgrement, int noofDays) {
 		LocalDate startDate = rentalAgrement.getCheckOutDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-		LocalDate endDate = startDate.plusDays(noofDays);
+		LocalDate endDate = startDate.plusDays((noofDays-1));
 
 		// Get the day of the week
-		DayOfWeek dayOfWeek = endDate.getDayOfWeek();
-		if (dayOfWeek.equals(DayOfWeek.SATURDAY))
-			endDate = endDate.minusDays(1);
-		if (dayOfWeek.equals(DayOfWeek.SUNDAY))
-			endDate = endDate.plusDays(1);
+		
 		rentalAgrement.setDueDate(Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 	}
 
@@ -104,7 +100,7 @@ public class RentalRuleProcessor {
 
 		if (matchedTool.isFreeOnWeekendsOrHolidays()) {
 			LocalDate startDate = checkOutDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-			LocalDate endDate = startDate.plusDays(noOfDays);
+			LocalDate endDate = startDate.plusDays(noOfDays-1);
 			int startYear = startDate.getYear();
 			int endYear = endDate.getYear();
 
@@ -114,9 +110,9 @@ public class RentalRuleProcessor {
 				DayOfWeek dayOfWeek = July4th.getDayOfWeek();
 				if (dayOfWeek.equals(DayOfWeek.SATURDAY))
 					noOfDays--;
-				if (dayOfWeek.equals(DayOfWeek.SUNDAY))
+				else if (dayOfWeek.equals(DayOfWeek.SUNDAY))
 					noOfDays++;
-				if (July4th.isAfter(startDate) && July4th.isBefore(endDate))
+				else if (July4th.isAfter(startDate) && July4th.isBefore(endDate))
 					noOfDays--;
 			}
 			LocalDate firstMondayDate = getFirstSeptMondayDate(startYear);
@@ -135,7 +131,7 @@ public class RentalRuleProcessor {
 	}
 
 	private long getNoOfWeekends(LocalDate startDate, LocalDate endDate) {
-
+		endDate = endDate.plusDays(1);
 		Set<DayOfWeek> weekend = EnumSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
 		long weekendsBetween = startDate.datesUntil(endDate).filter(date -> weekend.contains(date.getDayOfWeek()))
 				.count();
@@ -153,11 +149,11 @@ public class RentalRuleProcessor {
 		if (rentalRequest.getRentTools().size() != listToSet(rentalRequest.getRentTools().stream()).size()) {
 			throw new DuplicateToolRentRequestException("Duplicate tools in request");
 		}
-		if (rentalRequest.getCheckOutDate() == null || rentalRequest.getCheckOutDate()
-				.before(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()))) {
-
-			throw new InvalidCheckOutDateException("Date specifieed in checkout is invalid");
-		}
+//		if (rentalRequest.getCheckOutDate() == null || rentalRequest.getCheckOutDate()
+//				.before(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()))) {
+//
+//			throw new InvalidCheckOutDateException("Date specifieed in checkout is invalid");
+//		}
 	}
 
 	@SuppressWarnings("unchecked")

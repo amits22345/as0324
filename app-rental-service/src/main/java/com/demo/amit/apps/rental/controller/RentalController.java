@@ -74,11 +74,5 @@ public class RentalController {
 		System.out.println("Total Discount :"+df.format(dto.getTotalDiscount()));
 		System.out.println("Total Amount :"+df.format(dto.getTotalAmount()));
 		System.out.println("------------------------------------------------------------------------------------------------");
-		
-		
-		
-		
-		
-		
 	}
 }

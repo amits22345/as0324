@@ -25,20 +25,22 @@ public class AppListingService {
 		this.toolsRepository = toolsRepository;
 	}
 
-	public void createToolEntry(Tool tool) throws DuplicateToolException {
+	public Tools createToolEntry(Tool tool) throws DuplicateToolException {
 		log.info("Inside the AppListingService.createToolEntry --- tool entry with code {}", tool.getToolCode());
 		log.debug("InputDate {}", tool);
 
 		try {
-			toolsRepository.save(requestToEntity(tool));
+			return toolsRepository.save(requestToEntity(tool));
 		} catch (Exception e) {
 			log.warn("Duplicate key {} is not allowed ", tool.getToolCode());
 			throw new DuplicateToolException("Duplicate tool details with code ::" + tool.getToolCode());
 		}
 
-		log.info("Tool details is saved");
+		
 	}
-
+	public void removeAll() {
+		toolsRepository.deleteAll();
+	}
 	private Tools requestToEntity(Tool tool) {
 		// TODO Auto-generated method stub
 		return Tools.builder().toolCode(tool.getToolCode()).toolName(tool.getToolName())
