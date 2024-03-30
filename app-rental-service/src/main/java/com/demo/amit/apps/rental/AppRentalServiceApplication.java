@@ -1,4 +1,4 @@
-package com.demo.amit.apps;
+package com.demo.amit.apps.rental;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

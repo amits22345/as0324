@@ -1,4 +1,4 @@
-package com.demo.amit.apps.exception.handler;
+package com.demo.amit.apps.rental.exception.handler;
 
 import java.time.LocalDateTime;
 import java.util.List;

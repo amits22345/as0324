@@ -1,7 +1,6 @@
 package com.demo.amit.apps.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,7 +42,8 @@ public class AppListingService {
 	private Tools requestToEntity(Tool tool) {
 		// TODO Auto-generated method stub
 		return Tools.builder().toolCode(tool.getToolCode()).toolName(tool.getToolName())
-				.toolType(tool.getToolType()).brand(tool.getBrand()).freeOnWeekends(tool.isFreeOnWeekendsOrHolidays())
+				.toolType(tool.getToolType()).brand(tool.getBrand()).freeOnWeekendsOrHolidays(tool.isFreeOnWeekendsOrHolidays())
+				.rentperDay(tool.getRentperDay())
 				.build();
 	}
 
@@ -62,7 +62,8 @@ public class AppListingService {
 
 	private Tool responseToDtoList(Tools tools1) {
 		return Tool.builder().brand(tools1.getBrand()).toolCode(tools1.getToolCode()).toolId(tools1.getToolId())
-				.toolName(tools1.getToolName()).toolType(tools1.getToolType()).freeOnWeekendsOrHolidays(tools1.isFreeOnWeekends())
+				.toolName(tools1.getToolName()).toolType(tools1.getToolType()).freeOnWeekendsOrHolidays(tools1.isFreeOnWeekendsOrHolidays())
+				.rentperDay(tools1.getRentperDay())
 				.build();
 
 	}

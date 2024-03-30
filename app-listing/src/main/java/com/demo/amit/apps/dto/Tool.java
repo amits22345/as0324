@@ -1,5 +1,7 @@
 package com.demo.amit.apps.dto;
 
+import java.math.BigDecimal;
+
 import org.springframework.data.annotation.Id;
 
 import lombok.AllArgsConstructor;
@@ -22,4 +24,5 @@ public class Tool {
 	private String toolType;
 	private String brand;
 	private boolean freeOnWeekendsOrHolidays;
+	private BigDecimal rentperDay;
 }

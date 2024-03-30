@@ -1,4 +1,4 @@
-package com.demo.amit.apps.exception.handler;
+package com.demo.amit.apps.rental.exception.handler;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
