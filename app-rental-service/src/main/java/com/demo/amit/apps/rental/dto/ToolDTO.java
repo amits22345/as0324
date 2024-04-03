@@ -2,6 +2,7 @@ package com.demo.amit.apps.rental.dto;
 
 import java.math.BigDecimal;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.data.annotation.Id;
 
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import lombok.experimental.Accessors;
 @Accessors
 @Data
 @Builder
+@ConfigurationProperties(prefix = "tool")
 public class ToolDTO {
 	
 	private String toolId;
@@ -24,8 +26,9 @@ public class ToolDTO {
 	private String toolType;
 	private String brand;
 	private long effectiveNofOfdays;
-	private boolean freeOnWeekendsOrHolidays;
-	private BigDecimal rentperDay;
+	private boolean freeOnWeekends;
+	private boolean freeOnHolidays;
+	private BigDecimal rentPerDay;
 	private BigDecimal amountBeforeDiscount;
 	private BigDecimal amountAfterDiscount;
 	private int discountInPercentage;

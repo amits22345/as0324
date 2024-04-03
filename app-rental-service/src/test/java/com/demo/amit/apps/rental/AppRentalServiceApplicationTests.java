@@ -25,14 +25,15 @@ import com.demo.amit.apps.rental.exception.DiscountNotInRangeException;
 import com.demo.amit.apps.rental.exception.DuplicateToolRentRequestException;
 import com.demo.amit.apps.rental.exception.InvalidCheckOutDateException;
 import com.demo.amit.apps.rental.exception.InvalidRentalDayException;
-import com.demo.amit.apps.rental.service.RentalService;
+import com.demo.amit.apps.rental.response.RentalResponse;
+import com.demo.amit.apps.rental.validator.RentalRuleProcessor;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 class AppRentalServiceApplicationTests {
 
 	@Autowired
-	private RentalService rentalService;
+	private RentalRuleProcessor rentalRuleProcessor;
 
 	@Test
 	public void createRenatalAgreementTest1()throws DiscountNotInRangeException, DuplicateToolRentRequestException, InvalidCheckOutDateException, InvalidRentalDayException {
@@ -49,9 +50,9 @@ class AppRentalServiceApplicationTests {
 						.rentTools(new ArrayList<>(Arrays.asList(info)))
 						.build();
 
-				RentAgreementDTO dto = rentalService.createRentAgrement(request);
+				RentalResponse dto = rentalRuleProcessor.processRentAgreement(request);
 				assertNotNull(dto);
-				printRentAgreement(dto);
+				printRentAgreement(dto.getAgreementDTO());
 
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -75,9 +76,9 @@ class AppRentalServiceApplicationTests {
 						.rentTools(new ArrayList<>(Arrays.asList(info)))
 						.build();
 
-				RentAgreementDTO dto = rentalService.createRentAgrement(request);
+				RentalResponse dto = rentalRuleProcessor.processRentAgreement(request);
 				assertNotNull(dto);
-				printRentAgreement(dto);
+				printRentAgreement(dto.getAgreementDTO());
 
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -101,9 +102,9 @@ class AppRentalServiceApplicationTests {
 						.rentTools(new ArrayList<>(Arrays.asList(info)))
 						.build();
 
-				RentAgreementDTO dto = rentalService.createRentAgrement(request);
+				RentalResponse dto = rentalRuleProcessor.processRentAgreement(request);
 				assertNotNull(dto);
-				printRentAgreement(dto);
+				printRentAgreement(dto.getAgreementDTO());
 
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -127,9 +128,9 @@ class AppRentalServiceApplicationTests {
 						.rentTools(new ArrayList<>(Arrays.asList(info)))
 						.build();
 
-				RentAgreementDTO dto = rentalService.createRentAgrement(request);
+				RentalResponse dto = rentalRuleProcessor.processRentAgreement(request);
 				assertNotNull(dto);
-				printRentAgreement(dto);
+				printRentAgreement(dto.getAgreementDTO());
 
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -153,9 +154,9 @@ class AppRentalServiceApplicationTests {
 						.rentTools(new ArrayList<>(Arrays.asList(info)))
 						.build();
 
-				RentAgreementDTO dto = rentalService.createRentAgrement(request);
+				RentalResponse dto = rentalRuleProcessor.processRentAgreement(request);
 				assertNotNull(dto);
-				printRentAgreement(dto);
+				printRentAgreement(dto.getAgreementDTO());
 
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -179,9 +180,36 @@ class AppRentalServiceApplicationTests {
 						.rentTools(new ArrayList<>(Arrays.asList(info)))
 						.build();
 
-				RentAgreementDTO dto = rentalService.createRentAgrement(request);
+				RentalResponse dto = rentalRuleProcessor.processRentAgreement(request);
 				assertNotNull(dto);
-				printRentAgreement(dto);
+				printRentAgreement(dto.getAgreementDTO());
+
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+	}
+	
+	@Test
+	public void createRenatalAgreementTestMultipleTool() throws DiscountNotInRangeException, DuplicateToolRentRequestException, InvalidCheckOutDateException, InvalidRentalDayException {
+		
+			try {
+
+				SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yy");
+				ToolInfo info = ToolInfo.builder().toolCode("JAKR").build();
+				ToolInfo info2 = ToolInfo.builder().toolCode("JAKD").build();
+				RentalRequest request = RentalRequest.builder()
+						.customerName("Amit Sharma")
+						.discountInPercentage(50)
+						.checkOutDate(sdf.parse("7/2/20"))
+						.noOfDays(4)
+						.rentTools(new ArrayList<>(Arrays.asList(info, info2)))
+						.build();
+
+				RentalResponse dto = rentalRuleProcessor.processRentAgreement(request);
+				assertNotNull(dto);
+				printRentAgreement(dto.getAgreementDTO());
 
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -205,9 +233,9 @@ class AppRentalServiceApplicationTests {
 						.rentTools(new ArrayList<>(Arrays.asList(info)))
 						.build();
 
-				RentAgreementDTO dto = rentalService.createRentAgrement(request);
+				RentalResponse dto = rentalRuleProcessor.processRentAgreement(request);
 				assertNotNull(dto);
-				printRentAgreement(dto);
+				printRentAgreement(dto.getAgreementDTO());
 				
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -239,9 +267,10 @@ class AppRentalServiceApplicationTests {
 			System.out.println("App Code                          	:" + item.getToolCode());
 			System.out.println("App Type                          	:" + item.getToolType());
 			System.out.println("Brand                          		:" + item.getBrand());
-			System.out.println("Rent per Day                        	:" + df.format(item.getRentperDay()));
+			System.out.println("Rent per Day                        	:" + df.format(item.getRentPerDay()));
 			System.out.println("Effective rental days               	:" + item.getEffectiveNofOfdays());
-			System.out.println("Free On weekend and holiday         	:" + item.isFreeOnWeekendsOrHolidays());
+			System.out.println("Free On weekend and holiday         	:" + item.isFreeOnWeekends());
+			System.out.println("Free On holiday         		:" + item.isFreeOnHolidays());
 			System.out.println("Amount before discount              	:" + df.format(item.getAmountBeforeDiscount()));
 			System.out.println("Discount Percentage                 	:" + item.getDiscountInPercentage() + "%");
 			System.out.println("Discount Amount                     	:" + df.format(item.getDiscountAmount()));

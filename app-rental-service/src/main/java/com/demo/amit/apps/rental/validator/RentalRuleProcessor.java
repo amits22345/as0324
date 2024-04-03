@@ -7,70 +7,75 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.stereotype.Component;
 
 import com.demo.amit.apps.rental.dto.RentAgreementDTO;
 import com.demo.amit.apps.rental.dto.RentalRequest;
+import com.demo.amit.apps.rental.dto.ToolConfig;
 import com.demo.amit.apps.rental.dto.ToolDTO;
 import com.demo.amit.apps.rental.dto.ToolInfo;
 import com.demo.amit.apps.rental.exception.DiscountNotInRangeException;
 import com.demo.amit.apps.rental.exception.DuplicateToolRentRequestException;
 import com.demo.amit.apps.rental.exception.InvalidCheckOutDateException;
 import com.demo.amit.apps.rental.exception.InvalidRentalDayException;
-import com.demo.amit.apps.rental.model.RentalAgrement;
-import com.demo.amit.apps.rental.model.Tool;
+import com.demo.amit.apps.rental.response.RentalResponse;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Service
-@RequiredArgsConstructor
+@ComponentScan(value = "com.demo.amit")
+@AllArgsConstructor
+@Component
 @Slf4j
 public class RentalRuleProcessor {
-	private final WebClient webClient;
+	
+	@Autowired
+    private ToolConfig toolConfig;
 
-	public RentalAgrement processRentAgreement(RentalRequest rentalRequest) throws DiscountNotInRangeException,
+
+
+	public RentalResponse processRentAgreement(RentalRequest rentalRequest) throws DiscountNotInRangeException,
 			DuplicateToolRentRequestException, InvalidCheckOutDateException, InvalidRentalDayException {
 		validateRequest(rentalRequest);
 
-		RentalAgrement rentalAgrement = processRequest(rentalRequest);
+		RentAgreementDTO rentalAgrement = processRequest(rentalRequest);
 
-		return rentalAgrement;
+		return RentalResponse.builder().agreementDTO(rentalAgrement).build();
 	}
 
 	
 
-	private RentalAgrement processRequest(RentalRequest rentalRequest) {
-		RentalAgrement rentAgreement = RentalAgrement.builder().customerName(rentalRequest.getCustomerName())
-				.checkOutDate(rentalRequest.getCheckOutDate()).toolsInfo(new ArrayList<>()).build();
-
-		ToolDTO[] tools = webClient.get().uri("http://localhost:8080/api/app-listing").retrieve()
-				.bodyToMono(ToolDTO[].class).block();
-
+	private RentAgreementDTO processRequest(RentalRequest rentalRequest) {
+		RentAgreementDTO rentAgreement = RentAgreementDTO.builder().customerName(rentalRequest.getCustomerName())
+				.checkOutDate(rentalRequest.getCheckOutDate()).requestNoOfDays(rentalRequest.getNoOfDays()).toolsInfo(new ArrayList<>()).build();
+		
 		setDueDate(rentAgreement, rentalRequest.getNoOfDays());
 		rentalRequest.getRentTools().stream().forEach(item -> {
-			ToolDTO matchedTool = Arrays.stream(tools).filter(n -> item.getToolCode().equals(n.getToolCode()))
+			ToolDTO matchedTool = toolConfig.loadTools().stream().filter(n -> item.getToolCode().equals(n.getToolCode()))
 					.findFirst().get();
 
 			long actualNoIfDay = getActualbillingDay(matchedTool, rentalRequest.getCheckOutDate(),
 					rentAgreement.getDueDate(), rentalRequest.getNoOfDays());
 
-			Tool toolInstance = Tool.builder().toolCode(matchedTool.getToolCode()).toolId(matchedTool.getToolId())
+			ToolDTO toolInstance = ToolDTO.builder().toolCode(matchedTool.getToolCode()).toolId(matchedTool.getToolId())
 					.toolName(matchedTool.getToolName()).toolType(matchedTool.getToolType())
-					.brand(matchedTool.getBrand()).freeOnWeekendsOrHolidays(matchedTool.isFreeOnWeekendsOrHolidays())
+					.brand(matchedTool.getBrand()).freeOnWeekends(matchedTool.isFreeOnWeekends())
+					.freeOnHolidays(matchedTool.isFreeOnHolidays())
 					.discountInPercentage(rentalRequest.getDiscountInPercentage())
-					.rentperDay(matchedTool.getRentperDay())
-					.amountBeforeDiscount(matchedTool.getRentperDay().multiply(new BigDecimal(actualNoIfDay)))
-					.effectiveNofOfdays(actualNoIfDay).build();
+					.rentPerDay(matchedTool.getRentPerDay())
+					.amountBeforeDiscount(matchedTool.getRentPerDay().multiply(new BigDecimal(actualNoIfDay)))
+					.effectiveNofOfdays(actualNoIfDay)
+					.build();
 
 			toolInstance.setDiscountAmount((toolInstance.getAmountBeforeDiscount()
 					.multiply(new BigDecimal(toolInstance.getDiscountInPercentage()).divide(new BigDecimal(100)))));
@@ -81,12 +86,13 @@ public class RentalRuleProcessor {
 			rentAgreement.setTotalAmount(rentAgreement.getTotalAmount().add(toolInstance.getAmountAfterDiscount()));
 			rentAgreement.setTotalDiscount(rentAgreement.getTotalDiscount().add(toolInstance.getDiscountAmount()));
 			rentAgreement.getToolsInfo().add(toolInstance);
+			
 		});
 
 		return rentAgreement;
 	}
 
-	private void setDueDate(RentalAgrement rentalAgrement, int noofDays) {
+	private void setDueDate(RentAgreementDTO rentalAgrement, int noofDays) {
 		LocalDate startDate = rentalAgrement.getCheckOutDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		LocalDate endDate = startDate.plusDays((noofDays-1));
 
@@ -97,10 +103,14 @@ public class RentalRuleProcessor {
 
 	private long getActualbillingDay(ToolDTO matchedTool, Date checkOutDate, Date dueDate, long noOfDays) {
 		// TODO Auto-generated method stub
-
-		if (matchedTool.isFreeOnWeekendsOrHolidays()) {
-			LocalDate startDate = checkOutDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-			LocalDate endDate = startDate.plusDays(noOfDays-1);
+		LocalDate startDate = checkOutDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate endDate = startDate.plusDays(noOfDays-1);
+		
+		if (matchedTool.isFreeOnWeekends()) {
+		
+			noOfDays = noOfDays - getNoOfWeekends(startDate, endDate);
+		}
+		if (matchedTool.isFreeOnHolidays()) {
 			int startYear = startDate.getYear();
 			int endYear = endDate.getYear();
 
@@ -119,7 +129,7 @@ public class RentalRuleProcessor {
 			if (firstMondayDate.isAfter(startDate) && firstMondayDate.isBefore(endDate)) {
 				noOfDays--;
 			}
-			noOfDays = noOfDays - getNoOfWeekends(startDate, endDate);
+			
 		}
 		return noOfDays;
 	}
